@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#171516">
+    <meta name="description" content="Choose a fighter, claim the rooftops, and challenge a friend to an online room-code duel.">
+    <title>Gali Rivals - Rooftop Duel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Gali Rivals home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>GALI<span class="brand-light">RIVALS</span></span>
+        </a>
+        <div class="topbar-center"><span class="live-dot"></span> ROOFTOP DUEL <span class="topbar-divider">/</span> CPU OR FRIEND</div>
+        <button class="sound-toggle" id="music-toggle" type="button" aria-pressed="false">
+          <span class="sound-icon" aria-hidden="true">♫</span><span id="music-label">MUSIC OFF</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="intro-row">
+          <div>
+            <p class="eyebrow"><span>01</span> &nbsp; IN THE CITY / AFTER HOURS</p>
+            <h1>CLAIM YOUR <span>GLORY.</span></h1>
+          </div>
+          <p class="intro-copy">One rooftop. One challenger.<br class="desktop-break"> <strong>Apna scene. Apni fight.</strong></p>
+        </section>
+
+        <section class="arena-card" aria-label="Fighting game">
+          <div class="match-hud">
+            <div class="player-hud player-hud-left">
+              <div class="hud-identity">
+                <span class="player-tag">P1</span>
+                <div><strong id="hud-name-1">NOVA</strong><small id="hud-title-1">THE COMET</small></div>
+              </div>
+              <div class="health-track"><span class="health-fill" id="health-1"></span><span class="health-glint"></span></div>
+              <div class="hud-meta"><span id="health-text-1">100</span><span class="round-dots" id="wins-1" aria-label="Player one round wins"></span></div>
+            </div>
+            <div class="round-hud">
+              <div class="round-label">ROUND</div>
+              <div class="round-number" id="round-number">01</div>
+              <div class="timer" id="timer">60</div>
+            </div>
+            <div class="player-hud player-hud-right">
+              <div class="hud-identity">
+                <div><strong id="hud-name-2">ROOK</strong><small id="hud-title-2">THE WALL</small></div>
+                <span class="player-tag">CPU</span>
+              </div>
+              <div class="health-track"><span class="health-fill" id="health-2"></span><span class="health-glint"></span></div>
+              <div class="hud-meta"><span class="round-dots" id="wins-2" aria-label="CPU round wins"></span><span id="health-text-2">100</span></div>
+            </div>
+          </div>
+
+          <div class="arena-wrap">
+            <canvas id="arena" width="1000" height="500" aria-label="Gali Rivals fighting arena"></canvas>
+            <div class="arena-topline"><span id="arena-location">MUMBAI / LOCAL LINE</span><span id="round-status">FIGHT!</span><span id="arena-opponent">CPU / ADAPTIVE FIGHTER</span></div>
+            <div class="hit-flash" id="hit-flash"></div>
+            <div class="result-overlay" id="result-overlay" hidden>
+              <p class="eyebrow" id="result-kicker">MATCH COMPLETE</p>
+              <h2 id="result-title">NOVA WINS</h2>
+              <p id="result-copy">The arena belongs to you.</p>
+              <button class="primary-button" id="rematch-button" type="button">RUN IT BACK <span>↻</span></button>
+            </div>
+            <div class="toast" id="toast" role="status" aria-live="polite"></div>
+          </div>
+
+          <div class="move-callouts">
+            <div><span class="callout-key" id="move-1-label">COMET JAB</span><span>F / W+F / S+F</span></div>
+            <div><span class="callout-key" id="move-2-label">METEOR KICK</span><span>G / W+G / S+G</span></div>
+            <div><span class="callout-key" id="move-3-label">STARFALL</span><span>H SPECIAL</span></div>
+            <div class="bot-memory" id="bot-memory" aria-live="polite" aria-label="CPU recent moves">CPU READ // READY</div>
+          </div>
+        </section>
+
+        <section class="multiplayer-panel" aria-label="Play with a friend online">
+          <div class="multiplayer-copy">
+            <p class="eyebrow"><span>02</span> &nbsp; SAME GALI. DIFFERENT SCREENS.</p>
+            <h2>BRING A FRIEND.</h2>
+            <p id="room-status" role="status" aria-live="polite">Create a room code or enter your friend's code.</p>
+          </div>
+          <div class="room-actions">
+            <button class="primary-button" id="create-room" type="button">CREATE ROOM <span>↗</span></button>
+            <form id="join-room-form">
+              <label class="sr-only" for="room-code-input">Room code</label>
+              <input id="room-code-input" type="text" maxlength="6" minlength="6" pattern="[A-HJ-NP-Z2-9]{6}" autocapitalize="characters" spellcheck="false" autocomplete="off" placeholder="6-LETTER CODE" aria-label="Enter room code" required>
+              <button type="submit" class="secondary-button">JOIN ROOM</button>
+            </form>
+            <div class="room-code-display" id="room-code-display" hidden>
+              <span>YOUR ROOM CODE</span><strong id="room-code"></strong><button id="copy-room-code" type="button" aria-label="Copy room code">COPY</button>
+            </div>
+            <button class="leave-room-button" id="leave-room" type="button" hidden>LEAVE ROOM</button>
+          </div>
+        </section>
+
+        <section class="controls-row" aria-label="Controls">
+          <div class="control-copy">
+            <p class="eyebrow"><span>03</span> &nbsp; KNOW YOUR MOVES</p>
+            <h2>READ THE RIVAL.</h2>
+            <p>Fight the CPU or bring a friend into your rooftop room. The CPU never repeats its last ten moves.</p>
+          </div>
+          <div class="control-legend">
+            <div class="control-player"><span class="legend-label">PLAYER 1 / HOST</span><div class="key-row"><kbd>A</kbd><kbd>D</kbd><span>MOVE / BACK</span><kbd>SPACE</kbd><span>JUMP</span><kbd>SHIFT</kbd><span>CROUCH</span></div></div>
+            <div class="control-player"><span class="legend-label">STRIKES</span><div class="key-row"><kbd>W</kbd><kbd>F</kbd><span>UPPERCUT</span><kbd>S</kbd><kbd>F</kbd><span>JAB</span></div></div>
+            <div class="control-player"><span class="legend-label">KICKS</span><div class="key-row"><kbd>W</kbd><kbd>G</kbd><span>HIGH KICK</span><kbd>S</kbd><kbd>G</kbd><span>LOW KICK</span></div></div>
+            <div class="control-player"><span class="legend-label">NEUTRAL</span><div class="key-row"><kbd>F</kbd><span>CROSS</span><kbd>G</kbd><span>ROUNDHOUSE</span><kbd>H</kbd><span>SPECIAL</span></div></div>
+          </div>
+        </section>
+
+        <section class="fighter-section" aria-label="Fighter customization">
+          <div class="section-heading">
+            <div><p class="eyebrow"><span>04</span> &nbsp; MAKE IT PERSONAL</p><h2>CHOOSE YOUR RIVAL.</h2></div>
+            <span class="section-note">YOUR ARENA. YOUR RULES.</span>
+          </div>
+          <div class="fighter-panels">
+            <article class="fighter-panel p1-panel">
+              <div class="panel-top"><span class="player-tag">P1</span><span class="panel-label" id="fighter-label-1">YOUR FIGHTER</span><span class="fighter-count" id="fighter-count-1">01 / 04</span></div>
+              <label class="select-label" for="fighter-1">FIGHTER</label>
+              <select id="fighter-1" aria-label="Player one fighter"></select>
+              <div class="customize-row">
+                <label class="name-field"><span>RING NAME</span><input id="name-1" maxlength="12" value="NOVA" aria-label="Player one ring name"></label>
+                <label class="color-field"><span>COLOR</span><input id="color-1" type="color" value="#ff4e83" aria-label="Player one fighter color"></label>
+              </div>
+              <p class="fighter-bio" id="bio-1"></p>
+              <div class="stat-row" id="stats-1"></div>
+            </article>
+            <div class="versus-mark" aria-hidden="true"><span>VS</span></div>
+            <article class="fighter-panel p2-panel">
+              <div class="panel-top"><span class="player-tag">CPU</span><span class="panel-label" id="fighter-label-2">COMPUTER RIVAL</span><span class="fighter-count" id="fighter-count-2">02 / 04</span></div>
+              <label class="select-label" for="fighter-2">CPU FIGHTER</label>
+              <select id="fighter-2" aria-label="Player two fighter"></select>
+              <div class="customize-row">
+                <label class="name-field"><span>CPU RING NAME</span><input id="name-2" maxlength="12" value="ROOK" aria-label="CPU ring name"></label>
+                <label class="color-field"><span>COLOR</span><input id="color-2" type="color" value="#37e6d0" aria-label="CPU fighter color"></label>
+              </div>
+              <p class="fighter-bio" id="bio-2"></p>
+              <div class="stat-row" id="stats-2"></div>
+            </article>
+          </div>
+          <div class="victory-settings">
+            <div class="victory-copy"><span class="victory-icon">♪</span><div><strong>YOUR VICTORY SOUND</strong><small>Pick the soundtrack to your next win.</small></div></div>
+            <label class="sound-select-label" for="victory-sound">VICTORY JINGLE</label>
+            <select id="victory-sound" aria-label="Choose a victory sound">
+              <option value="fanfare">Champions' Fanfare</option>
+              <option value="arcade">8-Bit Champion</option>
+              <option value="bells">Crystal Bells</option>
+              <option value="bass">Bass Drop</option>
+              <option value="silent">No victory sound</option>
+            </select>
+          </div>
+          <div class="arena-settings">
+            <div class="victory-copy"><span class="arena-icon">⌂</span><div><strong>SET THE SCENE</strong><small>Pick the rooftop and the city light.</small></div></div>
+            <label class="sound-select-label" for="arena-theme">ROOFTOP</label>
+            <select id="arena-theme" aria-label="Choose a rooftop arena">
+              <option value="mumbai">Mumbai / Local Line</option>
+              <option value="delhi">Old Delhi / Rooftops</option>
+              <option value="jaipur">Jaipur / Pink Sunset</option>
+              <option value="monsoon">Monsoon / Baarish</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="touch-controls" aria-label="Touch controls">
+          <div class="touch-player">
+            <span class="touch-label">YOU</span>
+            <div class="touch-pad">
+              <button data-action="jump" aria-label="Jump">JUMP</button>
+              <button data-action="crouch" aria-label="Crouch">CROUCH</button>
+              <button data-action="left" aria-label="Move left">LEFT</button>
+              <button data-action="right" aria-label="Move right">RIGHT</button>
+            </div>
+            <div class="touch-attacks">
+              <button data-action="jab">JAB</button><button data-action="uppercut">UPPERCUT</button><button data-action="lowKick">LOW KICK</button><button data-action="upperKick">HIGH KICK</button><button class="special-touch" data-action="special">SPECIAL</button>
+            </div>
+          </div>
+        </section>
+      </main>
+      <footer><span>GALI RIVALS <i>///</i> APNA SCENE. APNI FIGHT.</span><span>3D-STYLE SIDE VIEW <i>///</i> CPU OR ROOM CODE.</span></footer>
+    </div>
+    <script>
+      if (location.protocol !== "file:") {
+        const client = document.createElement("script");
+        client.src = "/socket.io/socket.io.js";
+        client.defer = true;
+        document.head.append(client);
+      }
+    </script>
+    <script src="game.js"></script>
+  </body>
+</html>
