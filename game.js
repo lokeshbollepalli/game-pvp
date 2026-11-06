@@ -1698,9 +1698,25 @@
 
   document.querySelectorAll(".touch-controls button").forEach((button) => {
     let activeKeys = [];
+    let isPressed = false;
+    let releaseTimer = 0;
+    const release = () => {
+      if (!isPressed) return;
+      isPressed = false;
+      window.clearTimeout(releaseTimer);
+      button.classList.remove("pressed");
+      button.setAttribute("aria-pressed", "false");
+      if (["crouch", "left", "right"].includes(button.dataset.action)) {
+        activeKeys.forEach((code) => submitKey(code, false));
+      }
+    };
     const start = (event) => {
       event.preventDefault();
+      if (isPressed) return;
+      isPressed = true;
+      if (event.pointerId !== undefined && button.setPointerCapture) button.setPointerCapture(event.pointerId);
       button.classList.add("pressed");
+      button.setAttribute("aria-pressed", "true");
       const action = button.dataset.action;
       const keySets = {
         jump: ["Space"], crouch: ["ShiftLeft"], left: ["KeyA"], right: ["KeyD"],
@@ -1711,22 +1727,18 @@
       activeKeys = keySets[action] || [];
       activeKeys.forEach((code) => submitKey(code, true));
       if (!["crouch", "left", "right"].includes(action)) {
-        const keys = activeKeys.slice();
-        window.setTimeout(() => keys.forEach((code) => submitKey(code, false)), 100);
+        releaseTimer = window.setTimeout(release, 120);
       }
       ensureAudio();
     };
     const end = (event) => {
       event.preventDefault();
-      button.classList.remove("pressed");
-      if (["crouch", "left", "right"].includes(button.dataset.action)) {
-        activeKeys.forEach((code) => submitKey(code, false));
-      }
+      release();
     };
     button.addEventListener("pointerdown", start);
     button.addEventListener("pointerup", end);
     button.addEventListener("pointercancel", end);
-    button.addEventListener("pointerleave", end);
+    button.addEventListener("lostpointercapture", release);
   });
 
   ui.selectors.forEach((select, index) => select.addEventListener("change", () => {

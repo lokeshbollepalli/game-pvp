@@ -13,6 +13,12 @@ npm start
 
 Then open `http://localhost:3000` in two browser windows or devices. One player creates a room and shares the six-character code; the other enters that code and joins. The match starts when the second player joins. The room host controls the left-side fighter; the guest controls the right-side fighter. Leaving or disconnecting closes the room, after which the remaining player can continue against the CPU.
 
+The browser version can also be played on phones using the on-screen movement and attack buttons beside the arena. Use portrait or landscape orientation; hold movement/crouch buttons and tap attacks.
+
+## Play online
+
+The static CPU game is published at [lokeshbollepalli.github.io/game-pvp](https://lokeshbollepalli.github.io/game-pvp/). Online room-code matches need the Node.js server deployed separately, as described below.
+
 ## Controls
 
 | Action | Controls |
