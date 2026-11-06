@@ -40,7 +40,8 @@
     upperKick: { category: "kick", duration: .58, start: .18, end: .37, range: 112, cooldown: .52, knockback: 27, damage: 1.13 },
     roundhouse: { category: "kick", duration: .61, start: .2, end: .4, range: 108, cooldown: .55, knockback: 30, damage: 1.18 },
     frontKick: { category: "kick", duration: .44, start: .13, end: .28, range: 99, cooldown: .37, knockback: 20, damage: .94 },
-    special: { category: "special", duration: .82, start: .3, end: .51, range: 145, cooldown: 1.1, knockback: 42, damage: 1 }
+    special: { category: "special", duration: .82, start: .3, end: .51, range: 145, cooldown: 1.1, knockback: 42, damage: 1 },
+    grab: { category: "grab", duration: .68, start: .2, end: .37, range: 92, cooldown: .72, knockback: 58, damage: 20 }
   };
   const BOT_MOVES = [
     { id: "jab", label: "JAB" }, { id: "cross", label: "CROSS" },
@@ -49,7 +50,8 @@
     { id: "roundhouse", label: "ROUNDHOUSE" }, { id: "frontKick", label: "FRONT KICK" },
     { id: "special", label: "SPECIAL" }, { id: "guard", label: "GUARD" },
     { id: "retreat", label: "RETREAT" }, { id: "dashIn", label: "DASH IN" },
-    { id: "jumpIn", label: "JUMP IN" }, { id: "feint", label: "FEINT" }
+    { id: "jumpIn", label: "JUMP IN" }, { id: "feint", label: "FEINT" },
+    { id: "grab", label: "SUMO GRAB" }
   ];
   const ARENA_THEMES = {
     mumbai: { sky: ["#314b69", "#e7a56f"], glow: "#ffd27a", city: ["#4d5260", "#977261"], floor: "#77604f", label: "MUMBAI / LOCAL LINE" },
@@ -59,6 +61,7 @@
   };
   const canvas = document.querySelector("#arena");
   const ctx = canvas.getContext("2d");
+  const isTouchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   const ui = {
     health: [document.querySelector("#health-1"), document.querySelector("#health-2")],
     healthText: [document.querySelector("#health-text-1"), document.querySelector("#health-text-2")],
@@ -87,7 +90,14 @@
     arenaLocation: document.querySelector("#arena-location"),
     musicToggle: document.querySelector("#music-toggle"),
     musicLabel: document.querySelector("#music-label"),
-    opponent: document.querySelector("#arena-opponent")
+    opponent: document.querySelector("#arena-opponent"),
+    orientationGate: document.querySelector("#orientation-gate"),
+    orientationMessage: document.querySelector("#orientation-message"),
+    orientationNote: document.querySelector("#orientation-note"),
+    orientationStart: document.querySelector("#orientation-start"),
+    orientationSetup: document.querySelector("#orientation-setup"),
+    mobileSetupStart: document.querySelector("#mobile-setup-start"),
+    setupStartFight: document.querySelector("#setup-start-fight")
   };
 
   const state = {
@@ -95,7 +105,7 @@
     wins: [0, 0],
     round: 1,
     time: 60,
-    phase: "fight",
+    phase: isTouchDevice ? "orientation" : "fight",
     phaseTime: 0,
     winner: -1,
     lastTime: 0,
@@ -114,10 +124,108 @@
     network: null,
     remoteKeys: new Set(),
     syncTimer: 0,
-    configTimer: 0
+    configTimer: 0,
+    mobileStarted: !isTouchDevice,
+    mobilePaused: false
   };
 
+  function isLandscape() {
+    return window.matchMedia("(orientation: landscape)").matches;
+  }
+
+  function updateOrientationGate() {
+    if (!isTouchDevice || state.mobileStarted && !state.mobilePaused && isLandscape()) {
+      ui.orientationGate.hidden = true;
+      return;
+    }
+    ui.orientationGate.hidden = false;
+    ui.orientationStart.hidden = !isLandscape();
+    ui.orientationSetup.hidden = !isLandscape() || state.mobileStarted;
+    if (!isLandscape()) {
+      ui.orientationMessage.textContent = "Turn your phone sideways to enter the arena.";
+      ui.orientationNote.textContent = state.mobileStarted
+        ? "The fight pauses until you return to landscape."
+        : "The fight starts after you enter in landscape mode.";
+      ui.orientationStart.textContent = "ENTER ARENA ↗";
+    } else if (state.mobilePaused) {
+      ui.orientationMessage.textContent = "You're back in the arena. Ready to continue?";
+      ui.orientationNote.textContent = "Fullscreen is best-effort; some mobile browsers don't support it.";
+      ui.orientationStart.textContent = "RESUME FIGHT ↗";
+    } else {
+      ui.orientationMessage.textContent = "Landscape locked. Enter the arena when you're ready.";
+      ui.orientationNote.textContent = "Tap to request fullscreen and start the fight.";
+      ui.orientationStart.textContent = "ENTER ARENA ↗";
+    }
+  }
+
+  async function enterMobileGame() {
+    if (!isTouchDevice || !isLandscape()) return;
+    const pending = [];
+    const firstStart = !state.mobileStarted;
+    const requestFullscreen = document.documentElement.requestFullscreen
+      || document.documentElement.webkitRequestFullscreen;
+    if (!document.fullscreenElement && requestFullscreen) {
+      try {
+        pending.push(Promise.resolve(requestFullscreen.call(document.documentElement)));
+      } catch {
+        // Fullscreen is optional; the game can still run in the browser window.
+      }
+    }
+    if (screen.orientation && screen.orientation.lock) {
+      try {
+        pending.push(Promise.resolve(screen.orientation.lock("landscape")));
+      } catch {
+        // Orientation lock is optional; the gate still enforces landscape.
+      }
+    }
+    const results = await Promise.allSettled(pending);
+    state.mobileStarted = true;
+    state.mobilePaused = false;
+    if (firstStart && state.phase === "orientation") state.phase = "fight";
+    document.body.classList.add("mobile-playing");
+    document.body.classList.remove("mobile-setup");
+    ui.mobileSetupStart.hidden = true;
+    ui.orientationGate.hidden = true;
+    if (results.some((result) => result.status === "rejected")) {
+      ui.orientationNote.textContent = "Fullscreen or orientation lock isn't available; continuing anyway.";
+    }
+  }
+
+  window.addEventListener("orientationchange", () => {
+    if (!isTouchDevice) return;
+    if (!isLandscape() && state.mobileStarted) {
+      state.mobilePaused = true;
+    }
+    if (!isLandscape() && !state.mobileStarted) {
+      document.body.classList.remove("mobile-setup");
+      ui.mobileSetupStart.hidden = true;
+    }
+    updateOrientationGate();
+  });
+  const orientationQuery = window.matchMedia("(orientation: landscape)");
+  const onOrientationChange = () => {
+    if (!isTouchDevice) return;
+    if (!isLandscape() && state.mobileStarted) state.mobilePaused = true;
+    if (!isLandscape() && !state.mobileStarted) {
+      document.body.classList.remove("mobile-setup");
+      ui.mobileSetupStart.hidden = true;
+    }
+    updateOrientationGate();
+  };
+  if (orientationQuery.addEventListener) orientationQuery.addEventListener("change", onOrientationChange);
+  else orientationQuery.addListener(onOrientationChange);
+  ui.orientationStart.addEventListener("click", enterMobileGame);
+  ui.orientationSetup.addEventListener("click", () => {
+    if (!isLandscape() || state.mobileStarted) return;
+    ui.orientationGate.hidden = true;
+    ui.mobileSetupStart.hidden = false;
+    document.body.classList.add("mobile-setup");
+  });
+  ui.setupStartFight.addEventListener("click", enterMobileGame);
+  if (isTouchDevice) updateOrientationGate();
+
   function handleKey(index, code, down) {
+    if (isTouchDevice && (!state.mobileStarted || state.mobilePaused)) return;
     const keys = index === 0 ? state.keys : state.remoteKeys;
     if (down) {
       if (keys.has(code)) return;
@@ -131,6 +239,7 @@
       if (code === "KeyF") setAction(index, keys.has("KeyW") ? "uppercut" : keys.has("KeyS") ? "jab" : "cross");
       if (code === "KeyG") setAction(index, keys.has("KeyW") ? "upperKick" : keys.has("KeyS") ? "lowKick" : "roundhouse");
       if (code === "KeyH") setAction(index, "special");
+      if (code === "KeyE") setAction(index, "grab");
       return;
     }
     keys.delete(code);
@@ -681,6 +790,10 @@
       tone(320, .22, "sawtooth", .045, 0, 90);
       tone(620, .28, "sine", .04, .08, 180);
     }
+    if (kind === "grab") {
+      tone(105, .22, "sawtooth", .065, 0, 48);
+      tone(72, .3, "triangle", .05, .06, 36);
+    }
     if (kind === "hit") {
       tone(95, .15, "square", .05, 0, 38);
       tone(540, .09, "triangle", .025, 0, 180);
@@ -745,6 +858,14 @@
       fighter.guard = true;
       fighter.guardTimer = .35;
       return;
+    }
+    if (action === "grab") {
+      if (fighter.y < fighter.baseY - 1) return;
+      const target = state.fighters[1 - index];
+      if (Math.abs(target.x - fighter.x) > ATTACKS.grab.range + (fighter.data.stats.reach - 3) * 7) {
+        if (index === 0) showToast("STEP CLOSER TO GRAB");
+        return;
+      }
     }
     if (action === "forward" || action === "back") {
       const sign = action === "forward" ? fighter.facing : -fighter.facing;
@@ -899,21 +1020,28 @@
       if (target.y < target.baseY - 43 && attack.type !== "special") return;
       attack.hit = true;
       const botDamageScale = attacker.index === 1 && !state.network ? .45 : 1;
-      const damage = Math.max(4, attacker.data.moves[spec.category][1] * spec.damage * botDamageScale * (target.guard ? .2 : 1));
+      const isGrab = attack.move === "grab";
+      const damage = isGrab
+        ? 20
+        : Math.max(4, attacker.data.moves[spec.category][1] * spec.damage * botDamageScale * (target.guard ? .2 : 1));
       target.health = Math.max(0, target.health - damage);
       target.hitBlink = .15;
-      target.stun = target.guard ? .12 : attack.move === "special" ? .42 : .22;
-      target.x += attacker.facing * (target.guard ? spec.knockback * .22 : spec.knockback);
-      if (target.y === target.baseY && !target.guard && (attack.move === "special" || attack.move === "uppercut" || attack.move === "upperKick")) target.vy = -130;
+      target.stun = target.guard && !isGrab ? .12 : isGrab ? .65 : attack.move === "special" ? .42 : .22;
+      target.x += attacker.facing * (target.guard && !isGrab ? spec.knockback * .22 : spec.knockback);
+      if (target.y === target.baseY && (!target.guard || isGrab) && (isGrab || attack.move === "special" || attack.move === "uppercut" || attack.move === "upperKick")) target.vy = isGrab ? -210 : -130;
       attacker.cooldown = Math.max(attacker.cooldown, .14);
-      state.shake = attack.move === "special" ? 9 : spec.category === "kick" ? 5 : 3;
-      if (target.guard) {
+      state.shake = attack.move === "special" || isGrab ? 9 : spec.category === "kick" ? 5 : 3;
+      if (target.guard && !isGrab) {
         playSfx("guard", target);
         showToast("BLOCKED!");
         spawnBurst(target.x - attacker.facing * 15, target.y - 73, "#d5e5ff", 5);
       } else {
         playSfx("hit", attacker);
-        spawnBurst(target.x - attacker.facing * 20, target.y - 73, attacker.color, attack.move === "special" ? 15 : 9);
+        spawnBurst(target.x - attacker.facing * 20, target.y - 73, attacker.color, attack.move === "special" || isGrab ? 16 : 9);
+        if (isGrab) {
+          spawnDust(target.x, target.baseY - 3, 10, "#d7b998");
+          showToast("SUMO THROW! -20 HP");
+        }
         if (attack.move === "special") {
           ui.flash.classList.add("active");
           window.setTimeout(() => ui.flash.classList.remove("active"), 70);
@@ -1407,6 +1535,12 @@
       armX = 42 + charge * 49;
       armY = -106 - charge * 14;
     }
+    if (type === "grab") {
+      const reach = Math.sin(Math.min(1, progress * 2.4) * Math.PI);
+      armX = 61 + reach * 9;
+      armY = -93;
+      lean += 5 + reach * 7;
+    }
 
     ctx.save();
     ctx.translate(lean, 0);
@@ -1429,9 +1563,9 @@
     ctx.rotate(motionTilt);
     ctx.translate(0, 76);
 
-    drawLimb(-18, -107, -35, -91, 13, shade(outfit, -.15));
-    drawLimb(-35, -91, -31, -76, 11, skin);
-    drawLimb(-31, -76, -24, -79, 10, color);
+    drawLimb(-18, -107, type === "grab" ? 4 : -35, type === "grab" ? -99 : -91, 13, shade(outfit, -.15));
+    drawLimb(type === "grab" ? 4 : -35, type === "grab" ? -99 : -91, type === "grab" ? 40 : -31, type === "grab" ? -91 : -76, 11, skin);
+    drawLimb(type === "grab" ? 40 : -31, type === "grab" ? -91 : -76, type === "grab" ? 52 : -24, type === "grab" ? -92 : -79, 10, color);
 
     const torsoGradient = ctx.createLinearGradient(-28, -116, 28, -52);
     torsoGradient.addColorStop(0, shade(outfit, .32));
@@ -1470,9 +1604,9 @@
       ctx.stroke();
     }
 
-    drawLimb(16, -111, 29, -106, data.style === "heavy" ? 16 : 12, outfit);
-    drawLimb(29, -106, armX, armY, data.style === "heavy" ? 14 : 10, outfit);
-    if (type === "punch" || type === "special") {
+    drawLimb(16, -111, type === "grab" ? 38 : 29, type === "grab" ? -101 : -106, data.style === "heavy" ? 16 : 12, outfit);
+    drawLimb(type === "grab" ? 38 : 29, type === "grab" ? -101 : -106, armX, armY, data.style === "heavy" ? 14 : 10, outfit);
+    if (type === "punch" || type === "special" || type === "grab") {
       drawSphere(armX + 2, armY, 9, 8, color);
       polygon([[armX - 5, armY - 3], [armX + 10, armY - 5], [armX + 15, armY], [armX + 2, armY + 5]], shade(color, -.16));
     } else {
@@ -1665,13 +1799,16 @@
   function frame(timestamp) {
     const dt = Math.min(.033, (timestamp - (state.lastTime || timestamp)) / 1000);
     state.lastTime = timestamp;
-    state.elapsed += dt;
-    if (!state.network || state.network.role === 0) {
-      if (state.phase === "fight") tickFighters(dt);
-      updatePhase(dt);
-      if (state.network && timestamp - state.syncTimer > 50) {
-        state.syncTimer = timestamp;
-        broadcastGameState();
+    const mobilePaused = isTouchDevice && (!state.mobileStarted || state.mobilePaused);
+    if (!mobilePaused) {
+      state.elapsed += dt;
+      if (!state.network || state.network.role === 0) {
+        if (state.phase === "fight") tickFighters(dt);
+        updatePhase(dt);
+        if (state.network && timestamp - state.syncTimer > 50) {
+          state.syncTimer = timestamp;
+          broadcastGameState();
+        }
       }
     }
     render();
@@ -1691,7 +1828,7 @@
   window.addEventListener("blur", () => {
     state.keys.clear();
     if (state.network && state.network.role === 1) {
-      ["KeyA", "KeyD", "KeyW", "KeyS", "KeyF", "KeyG", "KeyH", "ShiftLeft", "ShiftRight", "Space"].forEach((code) => state.network.socket.emit("input", { code, down: false }));
+      ["KeyA", "KeyD", "KeyW", "KeyS", "KeyF", "KeyG", "KeyH", "KeyE", "ShiftLeft", "ShiftRight", "Space"].forEach((code) => state.network.socket.emit("input", { code, down: false }));
     }
     state.fighters.forEach((fighter) => { fighter.guard = false; fighter.crouch = false; fighter.guardTimer = 0; });
   });
@@ -1722,7 +1859,8 @@
         jump: ["Space"], crouch: ["ShiftLeft"], left: ["KeyA"], right: ["KeyD"],
         jab: ["KeyS", "KeyF"], uppercut: ["KeyW", "KeyF"],
         lowKick: ["KeyS", "KeyG"], upperKick: ["KeyW", "KeyG"],
-        cross: ["KeyF"], roundhouse: ["KeyG"], special: ["KeyH"]
+        cross: ["KeyF"], roundhouse: ["KeyG"], special: ["KeyH"],
+        punch: ["KeyF"], kick: ["KeyG"], grab: ["KeyE"]
       };
       activeKeys = keySets[action] || [];
       activeKeys.forEach((code) => submitKey(code, true));

@@ -18,7 +18,7 @@ const rooms = new Map();
 const MAX_ROOMS = 2000;
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const INPUT_CODES = new Set([
-  "KeyA", "KeyD", "KeyW", "KeyS", "KeyF", "KeyG", "KeyH",
+  "KeyA", "KeyD", "KeyW", "KeyS", "KeyF", "KeyG", "KeyH", "KeyE",
   "ShiftLeft", "ShiftRight", "Space"
 ]);
 

@@ -12,6 +12,20 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
+    <section class="orientation-gate" id="orientation-gate" role="dialog" aria-modal="true" aria-labelledby="orientation-title" hidden>
+      <div class="orientation-card">
+        <div class="orientation-mark" aria-hidden="true"><span>↻</span><i></i><i></i></div>
+        <p class="eyebrow">ROOFTOP DUEL / MOBILE</p>
+        <h1 id="orientation-title">TILT TO<br><span>LANDSCAPE.</span></h1>
+        <p id="orientation-message">Turn your phone sideways to enter the arena.</p>
+        <button class="primary-button" id="orientation-start" type="button" hidden>ENTER ARENA <span>↗</span></button>
+        <button class="setup-button" id="orientation-setup" type="button" hidden>SET UP FIGHTER / ROOM</button>
+        <small id="orientation-note">The fight starts after you enter in landscape mode.</small>
+      </div>
+    </section>
+    <div class="mobile-setup-start" id="mobile-setup-start" hidden>
+      <button class="primary-button" id="setup-start-fight" type="button">READY? ENTER ARENA <span>↗</span></button>
+    </div>
     <div class="page-shell">
       <header class="topbar">
         <a class="brand" href="#" aria-label="Gali Rivals home">
@@ -69,6 +83,20 @@
               <button class="primary-button" id="rematch-button" type="button">RUN IT BACK <span>↻</span></button>
             </div>
             <div class="toast" id="toast" role="status" aria-live="polite"></div>
+            <section class="touch-controls" aria-label="Mobile fighting controls">
+              <div class="mobile-fight-actions">
+                <button data-action="punch" aria-label="Punch" aria-pressed="false">PUNCH</button>
+                <button data-action="kick" aria-label="Kick" aria-pressed="false">KICK</button>
+                <button class="special-touch" data-action="special" aria-label="Special move" aria-pressed="false">SPECIAL</button>
+                <button class="grab-touch" data-action="grab" aria-label="Sumo grab" aria-pressed="false">GRAB</button>
+              </div>
+              <div class="mobile-movement-controls">
+                <button data-action="left" aria-label="Move left" aria-pressed="false">◀</button>
+                <button data-action="right" aria-label="Move right" aria-pressed="false">▶</button>
+                <button data-action="jump" aria-label="Jump" aria-pressed="false">JUMP</button>
+                <button data-action="crouch" aria-label="Crouch" aria-pressed="false">CROUCH</button>
+              </div>
+            </section>
           </div>
 
           <div class="move-callouts">
@@ -79,20 +107,7 @@
           </div>
         </section>
 
-        <section class="touch-controls" aria-label="Touch controls">
-          <div class="touch-player">
-            <span class="touch-label">YOU</span>
-            <div class="touch-pad">
-              <button data-action="jump" aria-label="Jump" aria-pressed="false">JUMP</button>
-              <button data-action="crouch" aria-label="Crouch" aria-pressed="false">CROUCH</button>
-              <button data-action="left" aria-label="Move left" aria-pressed="false">LEFT</button>
-              <button data-action="right" aria-label="Move right" aria-pressed="false">RIGHT</button>
-            </div>
-            <div class="touch-attacks">
-              <button data-action="jab" aria-label="Jab" aria-pressed="false">JAB</button><button data-action="uppercut" aria-label="Uppercut" aria-pressed="false">UPPERCUT</button><button data-action="cross" aria-label="Cross punch" aria-pressed="false">CROSS</button><button data-action="lowKick" aria-label="Low kick" aria-pressed="false">LOW KICK</button><button data-action="upperKick" aria-label="High kick" aria-pressed="false">HIGH KICK</button><button data-action="roundhouse" aria-label="Roundhouse kick" aria-pressed="false">ROUNDHOUSE</button><button class="special-touch" data-action="special" aria-label="Special move" aria-pressed="false">SPECIAL</button>
-            </div>
-          </div>
-        </section>
+
 
         <section class="multiplayer-panel" aria-label="Play with a friend online">
           <div class="multiplayer-copy">
@@ -124,7 +139,7 @@
             <div class="control-player"><span class="legend-label">PLAYER 1 / HOST</span><div class="key-row"><kbd>A</kbd><kbd>D</kbd><span>MOVE / BACK</span><kbd>SPACE</kbd><span>JUMP</span><kbd>SHIFT</kbd><span>CROUCH</span></div></div>
             <div class="control-player"><span class="legend-label">STRIKES</span><div class="key-row"><kbd>W</kbd><kbd>F</kbd><span>UPPERCUT</span><kbd>S</kbd><kbd>F</kbd><span>JAB</span></div></div>
             <div class="control-player"><span class="legend-label">KICKS</span><div class="key-row"><kbd>W</kbd><kbd>G</kbd><span>HIGH KICK</span><kbd>S</kbd><kbd>G</kbd><span>LOW KICK</span></div></div>
-            <div class="control-player"><span class="legend-label">NEUTRAL</span><div class="key-row"><kbd>F</kbd><span>CROSS</span><kbd>G</kbd><span>ROUNDHOUSE</span><kbd>H</kbd><span>SPECIAL</span></div></div>
+            <div class="control-player"><span class="legend-label">NEUTRAL</span><div class="key-row"><kbd>F</kbd><span>CROSS / PUNCH</span><kbd>G</kbd><span>ROUNDHOUSE / KICK</span><kbd>H</kbd><span>SPECIAL</span><kbd>E</kbd><span>SUMO GRAB (20 HP)</span></div></div>
           </div>
         </section>
 

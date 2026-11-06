@@ -13,7 +13,7 @@ npm start
 
 Then open `http://localhost:3000` in two browser windows or devices. One player creates a room and shares the six-character code; the other enters that code and joins. The match starts when the second player joins. The room host controls the left-side fighter; the guest controls the right-side fighter. Leaving or disconnecting closes the room, after which the remaining player can continue against the CPU.
 
-The browser version can also be played on phones using the on-screen movement and attack buttons beside the arena. Use portrait or landscape orientation; hold movement/crouch buttons and tap attacks.
+On phones, rotate to landscape and tap **Enter Arena** to begin; the game requests fullscreen and landscape lock where the browser supports them. Choose **Set Up Fighter / Room** first to customize a fighter or create/join a friend room before starting. Four attack buttons (Punch, Kick, Special, and Grab) sit at the lower left, with movement, jump, and crouch at the lower right. Fullscreen is subject to mobile-browser support and must be requested from the start-button tap.
 
 ## Play online
 
@@ -29,8 +29,9 @@ The static CPU game is published at [lokeshbollepalli.github.io/game-pvp](https:
 | High kick / low kick | W + G / S + G |
 | Cross / roundhouse | F / G |
 | Special move | H |
+| Sumo grab (close range; deals 20 HP) | E |
 
-Touch controls appear on smaller screens. Matches are best of three rounds (first to two). The CPU draws from 14 moves and does not repeat any of its previous ten choices. All combat audio, music, and the selectable victory jingle are synthesized in the browser.
+On mobile, Punch and Kick trigger the standard cross and roundhouse; W/S combinations still select uppercut, jab, high kick, and low kick when using a keyboard. Matches are best of three rounds (first to two). The CPU draws from 15 moves and does not repeat any of its previous ten choices. All combat audio, music, and the selectable victory jingle are synthesized in the browser.
 
 ## Customize and deploy
 
