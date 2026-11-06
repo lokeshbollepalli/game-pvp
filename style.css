@@ -207,8 +207,11 @@ footer i { color:var(--pink); font-style:normal; padding:0 3px; }
 
 @media (hover:none) and (pointer:coarse) and (orientation:landscape) {
   .arena-wrap { aspect-ratio:2/1; }
-  .touch-controls { grid-template-columns:1fr 1.5fr; align-items:start; }
+  .touch-controls { grid-template-columns:minmax(130px,.8fr) minmax(0,1.5fr); align-items:start; }
+  .touch-player { display:contents; }
   .touch-pad { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .touch-attacks { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .touch-pad { grid-column:1; grid-row:1; }
+  .touch-attacks { grid-column:2; grid-row:1; }
   .touch-controls button { min-height:42px; }
 }
